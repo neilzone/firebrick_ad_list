@@ -8,3 +8,5 @@ Automatically updated ad / tracker blocker for FireBrick
 *Add your credentials at the top
 
 *Run it with bash (not sh)
+
+*If you want it to run automatically, add it as a cronjob
