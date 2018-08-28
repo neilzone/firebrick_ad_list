@@ -90,7 +90,7 @@ else
 	exit
 fi
 
-if curl -sL --fail https://firebrick.neilzone.co.uk/config/config --user "$firebrickuser:$firebrickpassword" --form config="@new_config.txt" | grep -q "Config loaded"; then
+if curl -sL --fail https://$firebrick/config/config --user "$firebrickuser:$firebrickpassword" --form config="@new_config.txt" | grep -q "Config loaded"; then
 	echo "Config installed"
   rm new_config.txt
 else
