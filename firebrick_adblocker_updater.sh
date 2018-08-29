@@ -40,6 +40,7 @@ function check_if_updated () {
 				make_ads_file
 			else
 				echo "No updates"
+				rm ads.txt
 				exit
 			fi
 		else
@@ -115,6 +116,7 @@ fi
 
 if curl -sL --fail $firebrickpath --user "$firebrickuser:$firebrickpassword" --form config="@new_config.txt" | grep -q "Config loaded"; then
 	echo "Config installed"
+	rm new_config.txt
 else
 	echo "Error: upload failed"
 	exit
