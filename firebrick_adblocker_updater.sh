@@ -12,26 +12,49 @@ firebrickpassword=FireBrick user's password
 
 adlist=pgl.yoyo.org/adservers/serverlist.php
 
+function make_ads_file () {
+		# create a file for next comparison
+		cp ads.txt previous_ads.txt
+		cp ads.txt ads2.txt
+		sed -i.bak 's/^/*./' ads2.txt
+		echo "Prepared list"
+		cat ads2.txt >> ads.txt
+		echo "Combined list"
+		rm ads2.txt ads2.txt.bak
+		awk -v ORS=" " '1' ads.txt > new.txt
+		echo "Added FireBrick mark-up"
+		echo '<block name="' > output.txt
+		cat new.txt >> output.txt
+		echo '" ttl="1" comment="auto_adlist"/>' >> output.txt
+		tr -d '\n' < output.txt > ads_new.txt
+		echo "Ad list file created"
+		rm ads.txt new.txt output.txt
+}
+
+# check if there are any new ad servers / trackers — if not, abort. Avoids unnecessary writes to FireBrick's flash
+
+function check_if_updated () {
+		if [ -f previous_ads.txt ]; then
+			echo "Starting comparison with previous ad list"
+			if ! cmp -s "previous_ads.txt" "ads.txt"; then
+				make_ads_file
+			else
+				echo "No updates"
+				exit
+			fi
+		else
+			echo "No files to compare"
+			make_ads_file
+		fi
+}
+
 
 if [[ ! -f ads.txt && ! -f ads2.txt && ! -f output.txt ]]; then
 	if curl --output /dev/null --silent --head --fail "$adlist"; then
 		echo "Able to reach $adlist."
 			if curl -sL --fail "https://pgl.yoyo.org/adservers/serverlist.php?hostformat=nohtml&showintro=0&mimetype=plaintext" -o ads.txt; then
 				echo "Downloaded ad list"
-				cp ads.txt ads2.txt
-				sed -i.bak 's/^/*./' ads2.txt
-				echo "Prepared list"
-				cat ads2.txt >> ads.txt
-				echo "Combined list"
-				rm ads2.txt ads2.txt.bak
-				awk -v ORS=" " '1' ads.txt > new.txt
-				echo "Added FireBrick mark-up"
-				echo '<block name="' > output.txt
-				cat new.txt >> output.txt
-				echo '" ttl="1" comment="auto_adlist"/>' >> output.txt
-				tr -d '\n' < output.txt > ads_new.txt
-				echo "Ad list file created"
-				rm ads.txt new.txt output.txt
+				check_if_updated
 			else
 				echo "Error: cannot download ad list from $adlist"
 				exit
@@ -81,7 +104,7 @@ if [ ! -f firebrick_config.txt ]; then
 		
 		rm ads_new.txt config.txt top_firebrick_config.txt bottom_firebrick_config.txt
 
-	else
+	else	
 		echo "Error: cannot reach $firebrick"
 		exit
 	fi
